@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日祝福倒计时&音频播放</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg,#2c3e50,#34495e);
+            color:#fff;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            text-align:center;
+            padding:20px;
+        }
+        .container{
+            max-width:550px;
+            width:100%;
+        }
+        h1{
+            margin-bottom:40px;
+            font-size:28px;
+        }
+        .btn-group{
+            display:flex;
+            gap:20px;
+            flex-wrap:wrap;
+            justify-content:center;
+            margin-bottom:30px;
+        }
+        button{
+            padding:16px 32px;
+            font-size:18px;
+            border:none;
+            border-radius:12px;
+            cursor:pointer;
+            transition:0.2s;
+        }
+        #startBtn{
+            background:#27ae60;
+            color:white;
+        }
+        #jumpBtn{
+            background:#e74c3c;
+            color:white;
+        }
+        button:hover{
+            transform:scale(1.05);
+        }
+        #countBox{
+            display:none;
+        }
+        .time-item{
+            font-size:42px;
+            font-weight:bold;
+            margin-top:20px;
+        }
+
+        /* 音频播放页面样式 */
+        #audioPage{
+            display:none;
+        }
+        .audio-btn-group{
+            display:flex;
+            gap:14px;
+            flex-wrap:wrap;
+            justify-content:center;
+            margin:30px 0;
+        }
+        .audio-btn{
+            background:#3498db;
+            color:#fff;
+        }
+        .back-btn{
+            background:#9b59b6;
+            margin-top:20px;
+        }
+        .text-show{
+            margin-top:20px;
+            font-size:20px;
+            min-height:60px;
+            padding:12px;
+            background:rgba(255,255,255,0.1);
+            border-radius:10px;
+        }
+        audio{
+            margin-top:20px;
+            width:100%;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 倒计时首页 -->
+    <div id="countPage">
+        <h1>距离目标时间还有</h1>
+        <div class="btn-group">
+            <button id="startBtn">开始倒计时</button>
+            <button id="jumpBtn">迫不及待</button>
+        </div>
+        <div id="countBox">
+            <div class="time-item" id="timeText"></div>
+        </div>
+    </div>
+
+    <!-- 音频播放页面 -->
+    <div id="audioPage">
+        <h1>点击名字播放祝福</h1>
+        <div class="audio-btn-group">
+            <button class="audio-btn" data-name="罗琪">罗琪</button>
+            <button class="audio-btn" data-name="刘观香">刘观香</button>
+            <button class="audio-btn" data-name="李小薇">李小薇</button>
+            <button class="audio-btn" data-name="李海涛">李海涛</button>
+        </div>
+        <div class="text-show" id="showText"></div>
+        <audio id="audioPlayer" controls>
+        <!-- 返回倒计时按钮 -->
+        <button class="back-btn" id="backCountBtn">返回倒计时</button>
+    </div>
+</div>
+
+<script>
+    // ========== 配置区 ==========
+    const targetDate = new Date("2026-12-12 00:00:00");
+
+    // 祝福文本数据
+    const audioData = {
+        "罗琪": "哈喽，李佳欢师姐生日快乐，祝你考研顺利。",
+        "刘观香": "祝佳欢生日快乐，考研上岸。",
+        "李小薇": "师姐生日快乐，祝你考研上岸。",
+        "李海涛": "李佳欢，祝你生日快乐，也祝你考研成功上岸。"
+    };
+
+    // 音频文件名称（放在html同一文件夹）
+    const audioSrc = {
+        "罗琪":"罗琪.m4a",
+        "刘观香":"刘观香.m4a",
+        "李小薇":"李小薇.m4a",
+        "李海涛":"李海涛.m4a"
+    }
+    const audioPlayer = document.getElementById('audioPlayer');
+    // ============================
+
+    const countPage = document.getElementById("countPage");
+    const audioPage = document.getElementById("audioPage");
+    const startBtn = document.getElementById("startBtn");
+    const jumpBtn = document.getElementById("jumpBtn");
+    const backCountBtn = document.getElementById("backCountBtn");
+    const countBox = document.getElementById("countBox");
+    const timeText = document.getElementById("timeText");
+    const showText = document.getElementById("showText");
+
+    // 切换到音频页面
+    function goAudioPage(){
+        countPage.style.display = "none";
+        audioPage.style.display = "block";
+    }
+    // 返回倒计时页面
+    function goCountPage(){
+        audioPage.style.display = "none";
+        countPage.style.display = "block";
+        // 重置倒计时界面按钮状态
+        document.querySelector(".btn-group").style.display = "flex";
+        countBox.style.display = "none";
+    }
+
+    // 返回按钮点击事件
+    backCountBtn.onclick = goCountPage;
+
+    // 迫不及待按钮
+    jumpBtn.onclick = function(){
+        goAudioPage();
+    }
+
+    // 开始倒计时
+    startBtn.onclick = function(){
+        document.querySelector(".btn-group").style.display = "none";
+        countBox.style.display = "block";
+
+        function updateTime(){
+            const now = new Date();
+            const diff = targetDate - now;
+            if(diff <= 0){
+                timeText.innerText = "时间到！";
+                setTimeout(()=>{
+                    goAudioPage();
+                },800);
+                return;
+            }
+            const day = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hour = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const min = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const sec = Math.floor((diff % (1000 * 60)) / 1000);
+            timeText.innerText = `${day}天 ${hour}时 ${min}分 ${sec}秒`;
+        }
+        updateTime();
+        setInterval(updateTime,1000);
+    }
+
+    // 名字按钮点击，播放音频+展示文字
+    document.querySelectorAll('.audio-btn').forEach(btn=>{
+        btn.onclick = function(){
+            const name = this.dataset.name;
+            showText.innerText = audioData[name];
+            audioPlayer.src = audioSrc[name];
+            audioPlayer.play().catch(e=>{
+                alert("播放失败，请确认音频文件放在和网页同一个文件夹！");
+            });
+        }
+    })
+</script>
+</body>
+</html>
